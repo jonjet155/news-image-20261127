@@ -49,7 +49,7 @@ PANELS = [
       deck="IDF says it can hit Iran without US help as Netanyahu calls a cabinet meeting."),
  dict(n=3, tag="C", region="North America", lon=-77.0, lat=38.9, scene="flags",
       head="TRUMP TO PUTIN: PULL BACK",
-      deck="Trump says he urged Putin in China to end aggression in Europe and make a quick Ukraine deal."),
+      deck="Trump says he urged Putin to end aggression in Europe and make a quick Ukraine deal."),
  dict(n=4, tag="C", region="Middle East", lon=48.0, lat=29.4, scene="drone",
       head="DRONE KILLS TWO IN KUWAIT",
       deck="Kuwait blames Iran; Tehran denies any role."),
@@ -68,12 +68,12 @@ PANELS = [
  dict(n=9, tag="C", region="Europe", lon=-0.1, lat=51.5, scene="chart",
       head="BLACK FRIDAY: STOCKS RALLY",
       deck="World shares climb as Wall Street reopens for a half day."),
- dict(n=10, tag="C", region="North America", lon=-80.6, lat=28.4, scene="rocket",
-      head="FCC CLEARS 1M SPACE SATELLITES",
-      deck="A million satellites to run data centres in orbit."),
- dict(n=11, tag="R", region="Europe", lon=8.7, lat=50.1, scene="euro",
-      head="DE COS SET TO LEAD THE ECB",
-      deck="Spain's Hernandez de Cos is set to succeed Christine Lagarde."),
+ dict(n=10, tag="C", region="Oceania", lon=174.8, lat=-41.3, scene="chart",
+      head="NZ COALITION ONE SEAT SHORT",
+      deck="Final count: Luxon 65 of 130; Opportunity holds the balance."),
+ dict(n=11, tag="R", region="Asia", lon=139.7, lat=35.7, scene="jet",
+      head="JAPAN EYES $350B DEFENCE PLAN",
+      deck="Tokyo weighs 56.3 trillion yen over five years from 2027."),
  dict(n=12, tag="C", region="Asia", lon=107.6, lat=-6.9, scene="mine",
       head="13 MINERS DEAD IN JAVA FLOOD",
       deck="Thirteen more are missing in a flooded pit in West Java."),
@@ -95,7 +95,7 @@ ALSO = [
  ("R", "WEDDING", "400,000 guests at Bihar lawmaker\u2019s wedding"),
  ("C", "OMAN", "Japan, Oman FMs agree Mideast cooperation"),
  ("C", "CHUBU", "Chubu Electric filed plan after faking quake data"),
- ("C", "MARSHALL", "Japan, Marshall Islands deepen Pacific ties"),
+ ("C", "PACIFIC", "Japan, Marshall Islands deepen Pacific ties"),
  ("R", "CHIPS", "US closes cloud route to AI chips for China firms"),
  ("R", "BRAZIL", "Brazil blasts \u201cunacceptable\u201d US tariff plans"),
  ("C", "ANTHROPIC", "Anthropic shares jump 12% after record IPO"),
@@ -114,24 +114,26 @@ BIG = [
  ("800,000", "without power on the US East Coast"),
  ("$12.9B", "forecast Black Friday online sales"),
  ("400,000", "guests at the Bihar wedding"),
- ("1M", "satellites in the SpaceX plan"),
+ ("$350B", "Japan's five-year defence plan"),
 ]
 
 TIMELINE = [
- ("00:00", "Kyodo News Digest"),
- ("01:13", "Xinhua world summary"),
- ("02:02", "Xinhua daily briefing"),
+ ("01:00", "NZ final count: Luxon 65 of 130"),
  ("13:30", "F1 Practice One, Lusail"),
+ ("14:30", "Wall Street reopens, half day"),
  ("17:00", "F1 Practice Two, Lusail"),
- ("22:30", "BBC World Service summary"),
+ ("18:00", "Wall Street early close, 1pm ET"),
+ ("20:00", "Forest v Chelsea kick off"),
 ]
 
 TAG_FULL = {"C": "CONFIRMED", "O": "OFFICIALS", "R": "REPORTED", "F": "FORECAST"}
 TAG_COLOR = {"C": TEAL, "O": NAVY, "R": MUSTARD, "F": CORAL}
 
 # Pin disc offsets (dx, dy in px) to decluster crowded coasts.
+# No offset for 10 (Wellington is isolated). 11 is offset SE so its disc
+# clears pin 7 (Pyongyang); the leader line marks the true Tokyo point.
 PIN_OFF = {1: (14, -14), 2: (-14, -12), 3: (-14, 12), 4: (16, 12), 5: (-12, 12),
-           8: (14, -12), 9: (0, 0), 10: (-16, 14), 11: (12, 14), 13: (14, 16)}
+           8: (14, -12), 9: (0, 0), 11: (14, 16), 13: (14, 16)}
 
 # ---------------------------------------------------------------- helpers
 def tw(d, text, font):
@@ -512,8 +514,8 @@ def main():
                   outline=(255, 255, 255), width=2)
         d.text((px, py - 1), str(p["n"]), font=SANS_B(9 if p["n"] < 10 else 8),
                fill=(255, 255, 255), anchor="ma")
-    d.text((X0, 890), "REGIONS: ASIA 11 \u2022 N. AMERICA 9 \u2022 EUROPE 5 \u2022 MIDDLE EAST 5 "
-           "\u2022 LATIN AMERICA 2 \u2022 OCEANIA 2 \u2022 AFRICA 1",
+    d.text((X0, 890), "REGIONS: ASIA 12 \u2022 N. AMERICA 8 \u2022 EUROPE 4 \u2022 MIDDLE EAST 5 "
+           "\u2022 LATIN AMERICA 2 \u2022 OCEANIA 3 \u2022 AFRICA 1",
            font=SANS(8), fill=MUTED)
     d.text((X0, 904), "Pins 1\u201313 match the panel numbers above. Discs are offset with "
            "leader lines where coasts are crowded.",
@@ -528,22 +530,42 @@ def main():
         d.text((ax + 6, ay + 1), tag, font=SANS_B(8), fill=(255, 255, 255),
                anchor="ma")
         f = SANS_B(9)
-        lw = tw(d, label + " ", f)
-        lines = fit_check(f"also{i+14}",
-                          wrap(d, label + " " + text, f, 238 - 16), 2)
-        # label bold on first line, rest regular: draw first line bold then
-        # second line regular if wrapped
-        block(d, lines, SANS(9), ax + 16, ay + 1, leading=11)
-        # bold the label over the first line
-        d.text((ax + 16, ay + 1), label, font=f, fill=INK)
+        rf = SANS(9)
+        # Bold keyword + colon, then regular text with a clear gap.
+        # The first line starts after the keyword; each run is wrapped
+        # in its own font, so the wider bold keyword can never overrun
+        # the headline text that follows it.
+        kw = label + ":"
+        kw_w = int(tw(d, kw, f))
+        gap = 6
+        words = text.split()
+        lines, cur, limit = [], "", 222 - kw_w - gap
+        for w in words:
+            t = (cur + " " + w).strip()
+            if tw(d, t, rf) <= limit:
+                cur = t
+            else:
+                if cur:
+                    lines.append(cur)
+                cur = w
+                limit = 222
+        if cur:
+            lines.append(cur)
+        lines = fit_check(f"also{i+14}", lines, 2)
+        d.text((ax + 16, ay + 1), kw, font=f, fill=INK)
+        if lines:
+            d.text((ax + 16 + kw_w + gap, ay + 1), lines[0], font=rf, fill=INK)
+        if len(lines) > 1:
+            d.text((ax + 16, ay + 12), lines[1], font=rf, fill=INK)
 
     # DATE CHECK
     d.rectangle([X0, 930, X0 + CW, 964], outline=CORAL, width=2, fill=(255, 244, 240))
     dc = ("DATE CHECK \u2014 Wires read up to 23:30 UTC, Fri 27 Nov 2026. Every story "
           "here was reported, or still developing, on 27 Nov in at least one time "
           "zone. Left out: Las Vegas GP, Verstappen\u2019s win (22 Nov); Trump\u2013Putin "
-          "APEC meeting, Shenzhen (19 Nov); US midterm results (3 Nov). Not yet: "
-          "Netanyahu cabinet decision on Iran strikes; Qatar GP qualifying (Sat 28 Nov).")
+          "APEC meeting, Shenzhen (19 Nov); FCC satellite approval (25 Nov); de Cos "
+          "ECB pick (26 Nov). Not yet: Netanyahu Iran decision; Qatar GP qualifying "
+          "(Sat 28 Nov).")
     dl = fit_check("datecheck", wrap(d, dc, SANS(8), CW - 24), 3)
     block(d, dl, SANS(8), X0 + 10, 934, leading=11)
 
