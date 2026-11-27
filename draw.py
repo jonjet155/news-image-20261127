@@ -65,10 +65,10 @@ PANELS = [
  dict(n=8, tag="C", region="North America", lon=-74.0, lat=40.7, scene="storm",
       head="STORM CUTS POWER TO 800,000",
       deck="Thanksgiving storm floods the US East Coast and delays flights."),
- dict(n=9, tag="C", region="Europe", lon=-0.1, lat=51.5, scene="chart",
+ dict(n=9, tag="C", region="North America", lon=-87.6, lat=41.9, scene="chart",
       head="BLACK FRIDAY: STOCKS RALLY",
       deck="World shares climb as Wall Street reopens for a half day."),
- dict(n=10, tag="C", region="Oceania", lon=174.8, lat=-41.3, scene="seats",
+ dict(n=10, tag="C", region="Oceania", lon=166.8, lat=-41.3, scene="seats",
       head="NZ COALITION ONE SEAT SHORT",
       deck="Final count: Luxon 65 of 130; Opportunity holds the balance."),
  dict(n=11, tag="R", region="Asia", lon=139.7, lat=35.7, scene="jet",
@@ -98,13 +98,13 @@ ALSO = [
  ("C", "PACIFIC", "Japan, Marshall Islands deepen Pacific ties"),
  ("R", "CHIPS", "US curbs remote access to AI chips for China firms"),
  ("R", "BRAZIL", "Brazil blasts \u201cunacceptable\u201d US tariff plans"),
- ("R", "KIM", "Kim orders wider deployment of tactical nuclear arms"),
+ ("R", "KIM", "Kim tours uranium site, orders wider deployment of tactical nuclear arms"),
  ("R", "TARIFFS", "New Trump tariffs \u201cnot as bad as feared\u201d"),
  ("R", "MILEI", "Milei accuses Brazil, Mexico of funding smears"),
  ("F", "SALES", "Holiday spending seen up 4-6% as Black Friday opens"),
  ("C", "IMAI", "Wife pleads for reporter Yuki Imai, held in Russia"),
  ("C", "RUTTE", "Trump hosts NATO chief Rutte in Florida"),
- ("R", "URANIUM", "Kim tours uranium site, vows more nuclear arms"),
+ ("R", "GAZA", "Katz: Hamas must disarm or 1M Gazans face new offensive"),
  ("R", "WOLFF", "Wolff: no outside offers as he plans Mercedes future"),
 ]
 
@@ -134,7 +134,11 @@ TAG_COLOR = {"C": TEAL, "O": NAVY, "R": MUSTARD, "F": CORAL}
 # pins 2/4/5/8/10/11/13 sat in sea or on the wrong landmass). Offsets move
 # discs onto nearby land with a leader line to the true point; 1/13 stay
 # separated by 27 px. 7 sits on Tokyo, 11 is offset NW to Manchuria.
+# v5: 9's true point moved to Chicago (US markets hub; v4 put it on London,
+# disc centre (246,727) on the UK) with the disc offset NW onto US land,
+# 29 px from pin 8 and 22 px from pin 3.
 PIN_OFF = {1: (14, -14), 2: (-6, -11), 3: (-20, 10), 4: (-3, -11), 5: (2, 6),
+           9: (-10, -8),
            11: (-16, -14), 13: (7, 8)}
 
 # ---------------------------------------------------------------- helpers
@@ -402,7 +406,7 @@ AUSTRALIA = [(113,-22),(114,-30),(115,-35),(120,-34),(125,-32),(129,-32),(132,-3
 UK = [(-5,50),(-3,53),(-5,56),(-2,58),(0,53),(1,51)]
 JAPAN = [(130,31),(132,33),(135,34),(137,35),(139,36),(140,38),(141,40),(142,42),
  (143,44),(141,43),(140,40),(138,37),(136,35),(133,34),(131,32)]
-NZ = [(167,-45),(170,-42),(174,-40),(177,-38),(175,-37),(172,-41),(168,-44)]
+NZ = [(159,-45),(162,-42),(166,-40),(169,-38),(167,-37),(164,-41),(160,-44)]
 # Arabian peninsula (missing from the Eurasia outline above, which stops at
 # the Gulf coast — without it, Yemen/Saudi pins read as sea). Drawn in LAND.
 ARABIA = [(38,27),(39,24),(40,21),(42,18),(43,14),(44,12.5),(47,13),(50,14.5),
@@ -413,8 +417,11 @@ ARABIA = [(38,27),(39,24),(40,21),(42,18),(43,14),(44,12.5),(47,13),(50,14.5),
 JAPAN_LINE = [(130,31),(132,33),(134,34),(136,35),(138,35.5),(139.5,36.5),
  (140.5,38.5),(141.5,40.5),(142.5,42.5),(143.5,44)]
 UK_LINE = [(-5,50),(-4,52),(-3,54),(-2,56),(-1,57.5),(0,54),(1,51.5)]
-NZ_NORTH = [(173,-36.5),(174.5,-38),(176,-39.5),(174.8,-41.2)]
-NZ_SOUTH = [(172.5,-40.5),(170.5,-42.5),(168.5,-44.5),(167.5,-46)]
+# NZ drawn 8 deg west of true lon (v5: disc was on a sliver at the frame
+# edge) so the full disc + both islands sit inside the frame; the fat
+# island lines are widened 12 -> 16 so the pin reads on-land at 300px.
+NZ_NORTH = [(165,-36.5),(166.5,-38),(168,-39.5),(166.8,-41.2)]
+NZ_SOUTH = [(164.5,-40.5),(162.5,-42.5),(160.5,-44.5),(159.5,-46)]
 ISLANDS_LINE = [(95,5),(100,1),(104,-3),(107,-6.5),(111,-7.5),(115,-8.5),
  (120,-9.5),(125,-9),(130,-5),(136,-4),(140,-7)]
 
@@ -546,8 +553,8 @@ def main():
                       (UK, LAND2), (JAPAN, LAND2), (NZ, LAND2)]:
         d.polygon([proj(lo, la) for lo, la in poly], fill=col)
     # Fat island lines so pin discs sit on visible land, not sea.
-    for line, wd in [(JAPAN_LINE, 7), (UK_LINE, 6), (NZ_NORTH, 12),
-                     (NZ_SOUTH, 12), (ISLANDS_LINE, 5)]:
+    for line, wd in [(JAPAN_LINE, 7), (UK_LINE, 6), (NZ_NORTH, 16),
+                     (NZ_SOUTH, 16), (ISLANDS_LINE, 5)]:
         d.line([proj(lo, la) for lo, la in line], fill=LAND2, width=wd,
                joint="curve")
     # pins: leader line from true point to offset disc
@@ -562,7 +569,7 @@ def main():
                   outline=(255, 255, 255), width=2)
         d.text((px, py - 1), str(p["n"]), font=SANS_B(9 if p["n"] < 10 else 8),
                fill=(255, 255, 255), anchor="ma")
-    d.text((X0, 890), "REGIONS: ASIA 13 \u2022 N. AMERICA 7 \u2022 EUROPE 4 \u2022 MIDDLE EAST 5 "
+    d.text((X0, 890), "REGIONS: ASIA 12 \u2022 N. AMERICA 8 \u2022 EUROPE 3 \u2022 MIDDLE EAST 6 "
            "\u2022 LATIN AMERICA 2 \u2022 OCEANIA 3 \u2022 AFRICA 1",
            font=SANS(8), fill=MUTED)
     d.text((X0, 904), "Pins 1\u201313 match the panel numbers above. Discs are offset with "
@@ -631,7 +638,7 @@ def main():
 ALSO_REG = ["North America", "North America", "Europe", "Asia", "Asia", "Asia",
             "Oceania", "Europe", "Asia", "Asia", "Asia", "Oceania", "Asia",
             "Latin America", "Asia", "North America", "Latin America",
-            "North America", "Asia", "North America", "Asia", "Europe"]
+            "North America", "Asia", "North America", "Middle East", "Europe"]
 
 if __name__ == "__main__":
     main()
