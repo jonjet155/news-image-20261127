@@ -59,16 +59,16 @@ PANELS = [
  dict(n=6, tag="C", region="Africa", lon=23.0, lat=-3.0, scene="ebola",
       head="EBOLA TOPS 12,000 CASES IN CONGO",
       deck="Nearly 6,000 dead; the outbreak has reached 8 of 26 provinces."),
- dict(n=7, tag="R", region="Asia", lon=125.8, lat=39.0, scene="missile",
-      head="KIM ORDERS MORE NUCLEAR ARMS",
-      deck="Kim calls for wider deployment of tactical nuclear weapons."),
+ dict(n=7, tag="R", region="Asia", lon=140.1, lat=35.6, scene="datacentre",
+      head="ANTHROPIC IN JAPAN DATA TALKS",
+      deck="JERA in talks with Anthropic, Meta on Tokyo AI centres."),
  dict(n=8, tag="C", region="North America", lon=-74.0, lat=40.7, scene="storm",
       head="STORM CUTS POWER TO 800,000",
       deck="Thanksgiving storm floods the US East Coast and delays flights."),
  dict(n=9, tag="C", region="Europe", lon=-0.1, lat=51.5, scene="chart",
       head="BLACK FRIDAY: STOCKS RALLY",
       deck="World shares climb as Wall Street reopens for a half day."),
- dict(n=10, tag="C", region="Oceania", lon=174.8, lat=-41.3, scene="chart",
+ dict(n=10, tag="C", region="Oceania", lon=174.8, lat=-41.3, scene="seats",
       head="NZ COALITION ONE SEAT SHORT",
       deck="Final count: Luxon 65 of 130; Opportunity holds the balance."),
  dict(n=11, tag="R", region="Asia", lon=139.7, lat=35.7, scene="jet",
@@ -96,12 +96,12 @@ ALSO = [
  ("C", "OMAN", "Japan, Oman FMs agree Mideast cooperation"),
  ("C", "CHUBU", "Chubu Electric filed plan after faking quake data"),
  ("C", "PACIFIC", "Japan, Marshall Islands deepen Pacific ties"),
- ("R", "CHIPS", "US closes cloud route to AI chips for China firms"),
+ ("R", "CHIPS", "US curbs remote access to AI chips for China firms"),
  ("R", "BRAZIL", "Brazil blasts \u201cunacceptable\u201d US tariff plans"),
- ("C", "ANTHROPIC", "Anthropic shares jump 12% after record IPO"),
+ ("R", "KIM", "Kim orders wider deployment of tactical nuclear arms"),
  ("R", "TARIFFS", "New Trump tariffs \u201cnot as bad as feared\u201d"),
  ("R", "MILEI", "Milei accuses Brazil, Mexico of funding smears"),
- ("R", "MUSK", "Musk: every US child to get two SpaceX shares"),
+ ("F", "SALES", "Holiday spending seen up 4-6% as Black Friday opens"),
  ("C", "IMAI", "Wife pleads for reporter Yuki Imai, held in Russia"),
  ("C", "RUTTE", "Trump hosts NATO chief Rutte in Florida"),
  ("R", "URANIUM", "Kim tours uranium site, vows more nuclear arms"),
@@ -129,11 +129,13 @@ TIMELINE = [
 TAG_FULL = {"C": "CONFIRMED", "O": "OFFICIALS", "R": "REPORTED", "F": "FORECAST"}
 TAG_COLOR = {"C": TEAL, "O": NAVY, "R": MUSTARD, "F": CORAL}
 
-# Pin disc offsets (dx, dy in px) to decluster crowded coasts.
-# No offset for 10 (Wellington is isolated). 11 is offset SE so its disc
-# clears pin 7 (Pyongyang); the leader line marks the true Tokyo point.
-PIN_OFF = {1: (14, -14), 2: (-14, -12), 3: (-14, 12), 4: (16, 12), 5: (-12, 12),
-           8: (14, -12), 9: (0, 0), 11: (14, 16), 13: (14, 16)}
+# Pin disc offsets (dx, dy in px). Every disc centre must sit on DRAWN land —
+# verified from the rendered map, never from lon/lat alone (v3 failed this:
+# pins 2/4/5/8/10/11/13 sat in sea or on the wrong landmass). Offsets move
+# discs onto nearby land with a leader line to the true point; 1/13 stay
+# separated by 27 px. 7 sits on Tokyo, 11 is offset NW to Manchuria.
+PIN_OFF = {1: (14, -14), 2: (-6, -11), 3: (-20, 10), 4: (-3, -11), 5: (2, 6),
+           11: (-16, -14), 13: (7, 8)}
 
 # ---------------------------------------------------------------- helpers
 def tw(d, text, font):
@@ -297,6 +299,33 @@ def scene(d, kind, x, y, w, h):
         d.polygon([(x + w - 26, y + 8), (x + w - 8, y + 8), (x + w - 16, y + 20)], fill=TEAL)
         d.rectangle([x + 14, y + h - 26, x + 30, y + h - 12], fill=CORAL)
         d.line([x + 14, y + h - 26, x + 30, y + h - 26], fill=INK, width=2)
+    elif kind == "seats":
+        # Parliament bar: 65 of the 66 needed — one coral seat short.
+        bx0, bw = x + 14, w - 28
+        # "65" sits right of the number badge (badge covers x+6..x+22).
+        d.text((x + 30, y + 3), "65", font=SANS_B(13), fill=TEAL)
+        d.text((bx0 + bw, y + 6), "66 NEEDED", font=SANS_B(8), fill=INK,
+               anchor="ra")
+        by = y + 21
+        d.rectangle([bx0, by, bx0 + bw, by + 11], fill=(255, 255, 255),
+                    outline=INK, width=1)
+        fill_w = int(bw * 65 / 66)
+        d.rectangle([bx0 + 1, by + 1, bx0 + fill_w, by + 10], fill=TEAL)
+        d.rectangle([bx0 + fill_w, by + 1, bx0 + bw - 1, by + 10], fill=CORAL)
+        d.rectangle([bx0 + fill_w - 1, by - 3, bx0 + fill_w + 3, by + 14],
+                    outline=CORAL, width=2)
+    elif kind == "datacentre":
+        # Two server racks + power bolt: AI data centres by the power plants.
+        for rx in (x + 16, x + w - 40):
+            d.rectangle([rx, cy - 13, rx + 24, cy + 13], fill=(70, 76, 88))
+            for sy in range(3):
+                d.line([rx + 4, cy - 7 + sy * 8, rx + 20, cy - 7 + sy * 8],
+                       fill=(200, 205, 210), width=1)
+                d.ellipse([rx + 5, cy - 9 + sy * 8, rx + 8, cy - 6 + sy * 8],
+                          fill=TEAL if sy % 2 == 0 else MUSTARD)
+        d.polygon([(cx + 3, cy - 16), (cx - 6, cy + 2), (cx - 1, cy + 2),
+                   (cx - 4, cy + 16), (cx + 6, cy - 2), (cx + 1, cy - 2)],
+                  fill=MUSTARD)
     elif kind == "rocket":
         d.polygon([(cx - 6, cy + 12), (cx - 6, cy - 12), (cx, cy - 24), (cx + 6, cy - 12),
                    (cx + 6, cy + 12)], fill=(235, 235, 230))
@@ -374,6 +403,20 @@ UK = [(-5,50),(-3,53),(-5,56),(-2,58),(0,53),(1,51)]
 JAPAN = [(130,31),(132,33),(135,34),(137,35),(139,36),(140,38),(141,40),(142,42),
  (143,44),(141,43),(140,40),(138,37),(136,35),(133,34),(131,32)]
 NZ = [(167,-45),(170,-42),(174,-40),(177,-38),(175,-37),(172,-41),(168,-44)]
+# Arabian peninsula (missing from the Eurasia outline above, which stops at
+# the Gulf coast — without it, Yemen/Saudi pins read as sea). Drawn in LAND.
+ARABIA = [(38,27),(39,24),(40,21),(42,18),(43,14),(44,12.5),(47,13),(50,14.5),
+ (53,16),(56,18),(58.5,20),(59,22.5),(57.5,25),(55,26),(52,26.5),(50.5,29),
+ (48,29.5),(45,29),(42,28),(39,28)]
+# Island chains drawn as fat lines so the discs can sit ON visible land:
+# Honshu (Tokyo), UK (London), NZ (Wellington), Indonesia (Java).
+JAPAN_LINE = [(130,31),(132,33),(134,34),(136,35),(138,35.5),(139.5,36.5),
+ (140.5,38.5),(141.5,40.5),(142.5,42.5),(143.5,44)]
+UK_LINE = [(-5,50),(-4,52),(-3,54),(-2,56),(-1,57.5),(0,54),(1,51.5)]
+NZ_NORTH = [(173,-36.5),(174.5,-38),(176,-39.5),(174.8,-41.2)]
+NZ_SOUTH = [(172.5,-40.5),(170.5,-42.5),(168.5,-44.5),(167.5,-46)]
+ISLANDS_LINE = [(95,5),(100,1),(104,-3),(107,-6.5),(111,-7.5),(115,-8.5),
+ (120,-9.5),(125,-9),(130,-5),(136,-4),(140,-7)]
 
 # ---------------------------------------------------------------- layout
 def main():
@@ -499,9 +542,14 @@ def main():
         return (mx0 + (lon - lon0) * mw / (lon1 - lon0),
                 my0 + (lat0 - lat) * mh / (lat0 - lat1))
     for poly, col in [(N_AMERICA, LAND), (AFRICA, LAND), (EURASIA, LAND),
-                      (ISLANDS, LAND2), (AUSTRALIA, LAND2), (UK, LAND2),
-                      (JAPAN, LAND2), (NZ, LAND2)]:
+                      (ARABIA, LAND), (ISLANDS, LAND2), (AUSTRALIA, LAND2),
+                      (UK, LAND2), (JAPAN, LAND2), (NZ, LAND2)]:
         d.polygon([proj(lo, la) for lo, la in poly], fill=col)
+    # Fat island lines so pin discs sit on visible land, not sea.
+    for line, wd in [(JAPAN_LINE, 7), (UK_LINE, 6), (NZ_NORTH, 12),
+                     (NZ_SOUTH, 12), (ISLANDS_LINE, 5)]:
+        d.line([proj(lo, la) for lo, la in line], fill=LAND2, width=wd,
+               joint="curve")
     # pins: leader line from true point to offset disc
     for p in PANELS:
         tx, ty = proj(p["lon"], p["lat"])
@@ -514,7 +562,7 @@ def main():
                   outline=(255, 255, 255), width=2)
         d.text((px, py - 1), str(p["n"]), font=SANS_B(9 if p["n"] < 10 else 8),
                fill=(255, 255, 255), anchor="ma")
-    d.text((X0, 890), "REGIONS: ASIA 12 \u2022 N. AMERICA 8 \u2022 EUROPE 4 \u2022 MIDDLE EAST 5 "
+    d.text((X0, 890), "REGIONS: ASIA 13 \u2022 N. AMERICA 7 \u2022 EUROPE 4 \u2022 MIDDLE EAST 5 "
            "\u2022 LATIN AMERICA 2 \u2022 OCEANIA 3 \u2022 AFRICA 1",
            font=SANS(8), fill=MUTED)
     d.text((X0, 904), "Pins 1\u201313 match the panel numbers above. Discs are offset with "
@@ -564,7 +612,7 @@ def main():
           "here was reported, or still developing, on 27 Nov in at least one time "
           "zone. Left out: Las Vegas GP, Verstappen\u2019s win (22 Nov); Trump\u2013Putin "
           "APEC meeting, Shenzhen (19 Nov); FCC satellite approval (25 Nov); de Cos "
-          "ECB pick (26 Nov). Not yet: Netanyahu Iran decision; Qatar GP qualifying "
+          "ECB pick (26 Nov); Musk SpaceX share gift (26 Nov). Not yet: Netanyahu Iran decision; Qatar GP qualifying "
           "(Sat 28 Nov).")
     dl = fit_check("datecheck", wrap(d, dc, SANS(8), CW - 24), 3)
     block(d, dl, SANS(8), X0 + 10, 934, leading=11)
@@ -582,7 +630,7 @@ def main():
 
 ALSO_REG = ["North America", "North America", "Europe", "Asia", "Asia", "Asia",
             "Oceania", "Europe", "Asia", "Asia", "Asia", "Oceania", "Asia",
-            "Latin America", "North America", "North America", "Latin America",
+            "Latin America", "Asia", "North America", "Latin America",
             "North America", "Asia", "North America", "Asia", "Europe"]
 
 if __name__ == "__main__":
