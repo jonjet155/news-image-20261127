@@ -194,12 +194,30 @@ def scene(d, kind, x, y, w, h):
         for mx in (x + w - 26, x + 12):
             d.ellipse([mx - 4, y + h - 12, mx + 4, y + h - 4], fill=INK)
     elif kind == "jet":
+        # Fighter jets + missile-defence arcs over land.
         d.rectangle([x, y + h - 12, x + w, y + h], fill=LAND)
-        d.polygon([(x + 14, cy + 4), (x + w - 30, cy - 6), (x + w - 12, cy - 2),
-                   (x + w - 30, cy + 2), (x + w - 44, cy + 8), (x + 30, cy + 8)],
-                  fill=(70, 76, 88))
-        d.rectangle([x + 22, cy - 16, x + 30, cy + 4], fill=(70, 76, 88))
-        d.ellipse([x + w - 58, cy - 22, x + w - 42, cy - 6], fill=MUSTARD)
+        # defence arcs rising from the ground, right side
+        d.arc([x + w - 78, y + 4, x + w - 2, y + h + 12], 180, 360, fill=NAVY, width=2)
+        d.arc([x + w - 62, y + 14, x + w - 18, y + h + 12], 180, 360, fill=CORAL, width=2)
+        d.ellipse([x + w - 44, y + 2, x + w - 36, y + 10], fill=CORAL)
+        # jet 1, large, upper left flying right
+        jx, jy, s, col = x + 92, cy - 12, 1.0, (70, 76, 88)
+        d.line([jx - 78, jy + 3, jx - 40, jy + 3], fill=(255, 255, 255), width=2)
+        d.polygon([(jx - 34, jy + 2), (jx + 30, jy - 2), (jx + 38, jy),
+                   (jx + 30, jy + 3), (jx - 30, jy + 5)], fill=col)
+        d.polygon([(jx - 6, jy), (jx + 6, jy - 2), (jx + 14, jy + 9),
+                   (jx + 2, jy + 6)], fill=col)
+        d.polygon([(jx - 30, jy), (jx - 24, jy - 10), (jx - 18, jy)], fill=col)
+        d.ellipse([jx + 8, jy - 4, jx + 18, jy + 1], fill=SKY)
+        d.polygon([(jx - 34, jy + 2), (jx - 42, jy), (jx - 34, jy + 5)], fill=MUSTARD)
+        # jet 2, smaller, lower centre flying right
+        jx, jy, s, col = x + 196, cy + 8, 0.7, (88, 94, 106)
+        d.polygon([(jx - 24, jy + 1), (jx + 21, jy - 1), (jx + 27, jy),
+                   (jx + 21, jy + 2), (jx - 21, jy + 4)], fill=col)
+        d.polygon([(jx - 4, jy), (jx + 4, jy - 1), (jx + 10, jy + 6),
+                   (jx + 1, jy + 4)], fill=col)
+        d.polygon([(jx - 21, jy), (jx - 17, jy - 7), (jx - 13, jy)], fill=col)
+        d.ellipse([jx + 6, jy - 3, jx + 13, jy + 1], fill=SKY)
     elif kind == "flags":
         d.rectangle([x, y, x + w, y + h], fill=(235, 228, 210))
         for i in range(7):  # US stripes
@@ -214,13 +232,26 @@ def scene(d, kind, x, y, w, h):
         d.ellipse([cx - 6, cy - 8, cx + 2, cy + 1], fill=LAND)
         d.ellipse([cx + 1, cy + 3, cx + 9, cy + 10], fill=LAND)
     elif kind == "drone":
+        # Quad-rotor drone over a Kuwait Towers skyline cue.
         d.rectangle([x, y + h - 14, x + w, y + h], fill=LAND)
-        d.rectangle([x + 14, cy + 2, x + 52, y + h - 14], fill=(120, 110, 96))
-        d.rectangle([x + 20, cy - 12, x + 46, cy + 2], fill=(120, 110, 96))
-        d.ellipse([cx - 8, cy - 30, cx + 8, cy - 14], fill=(70, 76, 88))
-        d.line([cx - 22, cy - 26, cx + 22, cy - 26], fill=(70, 76, 88), width=3)
-        for sx, sy, r in [(x + 60, cy - 6, 5), (x + 70, cy - 14, 4), (x + 56, cy - 18, 3)]:
-            d.ellipse([sx - r, sy - r, sx + r, sy + r], fill=(150, 148, 142))
+        # Kuwait Towers: thin spires with spheres, right side
+        for tx, sh_, sr in [(x + w - 46, 24, 5), (x + w - 32, 19, 4), (x + w - 20, 13, 0)]:
+            d.rectangle([tx - 2, y + h - 14 - sh_, tx + 2, y + h - 14],
+                        fill=(120, 110, 96))
+            if sr:
+                d.ellipse([tx - sr, y + h - 14 - sh_ - 5, tx + sr,
+                           y + h - 14 - sh_ + 5], fill=(120, 110, 96))
+        # low block, far left
+        d.rectangle([x + 8, y + h - 22, x + 26, y + h - 14], fill=(150, 148, 142))
+        # quad-rotor drone, centre-left of the band
+        dx, dy = x + 78, cy - 2
+        for ax, ay in [(-22, -8), (22, -8), (-22, 8), (22, 8)]:
+            d.line([dx, dy, dx + ax, dy + ay], fill=(70, 76, 88), width=2)
+            d.ellipse([dx + ax - 9, dy + ay - 2, dx + ax + 9, dy + ay + 2],
+                      fill=(70, 76, 88))
+        d.rounded_rectangle([dx - 12, dy - 4, dx + 12, dy + 4], radius=3,
+                            fill=(70, 76, 88))
+        d.ellipse([dx - 3, dy + 4, dx + 3, dy + 8], fill=CORAL)
     elif kind == "refinery":
         d.rectangle([x, y + h - 10, x + w, y + h], fill=(120, 110, 96))
         for tx in (x + 20, x + 46, x + 72):
@@ -389,16 +420,34 @@ def main():
             "Oceania": (60, 140, 160), "Africa": (90, 140, 70)}
     rlab = {"Asia": "ASIA", "North America": "N AMERICA", "Europe": "EUROPE",
             "Middle East": "M EAST", "Latin America": "LATAM", "Oceania": "OCEANIA",
-            "Africa": "AFR"}
+            "Africa": "AFRICA"}
     counts = {r: 0 for r in regions}
     for p in PANELS:
         counts[p["region"]] += 1
     for r in ALSO_REG:
         counts[r] += 1
     assert sum(counts.values()) == total, (counts, total)
+    # Segment widths proportional to counts, but every segment gets at least
+    # its full label width + 8 px so no label collapses to a bare number.
+    # Deficit is taken from the segments with the most spare width.
+    widths = {r: CW * counts[r] / total for r in regions}
+    for _ in range(20):
+        need = {r: tw(d, f"{rlab[r]} {counts[r]}", SANS_B(8)) + 8 for r in regions}
+        short = [r for r in regions if widths[r] < need[r]]
+        if not short:
+            break
+        deficit = sum(need[r] - widths[r] for r in short)
+        donors = [r for r in regions if widths[r] > need[r]]
+        spare = sum(widths[r] - need[r] for r in donors)
+        if spare <= 0:
+            break
+        for r in short:
+            widths[r] = need[r]
+        for r in donors:
+            widths[r] -= deficit * (widths[r] - need[r]) / spare
     rx = X0
     for r in regions:
-        seg = CW * counts[r] / total
+        seg = widths[r]
         d.rectangle([rx, 216, rx + seg - 1, 236], fill=rcol[r])
         lab = f"{rlab[r]} {counts[r]}"
         if tw(d, lab, SANS_B(8)) <= seg - 6:
@@ -490,7 +539,7 @@ def main():
 
     # DATE CHECK
     d.rectangle([X0, 930, X0 + CW, 964], outline=CORAL, width=2, fill=(255, 244, 240))
-    dc = ("DATE CHECK \u2014 Wires read up to 02:50 UTC, Fri 27 Nov 2026. Every story "
+    dc = ("DATE CHECK \u2014 Wires read up to 23:30 UTC, Fri 27 Nov 2026. Every story "
           "here was reported, or still developing, on 27 Nov in at least one time "
           "zone. Left out: Las Vegas GP, Verstappen\u2019s win (22 Nov); Trump\u2013Putin "
           "APEC meeting, Shenzhen (19 Nov); US midterm results (3 Nov). Not yet: "
